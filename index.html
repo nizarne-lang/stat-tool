@@ -251,6 +251,10 @@
         <option value="t">t-interval (mean) — فترة ثقة للمتوسط</option>
         <option value="chi">Chi-square (variance) — فترة ثقة للتباين</option>
         <option value="prop">Proportion interval — فترة ثقة للنسبة</option>
+        <option value="t2ind">t — two mean (مستقلين) — الفرق بين متوسطين</option>
+        <option value="t2dep">t — two mean (غير مستقلين / مزدوجة) — الفرق بين متوسطين</option>
+        <option value="prop2">difference between two proportions — الفرق بين نسبتين</option>
+        <option value="var2">ratio of two variances (F) — النسبة بين تباينين</option>
       </select>
     </div>
 
@@ -298,6 +302,74 @@
         <input type="number" id="p_n" step="1" min="1" placeholder="مثال: 200"></div>
     </div>
 
+    <!-- t two-mean independent (pooled) -->
+    <div id="ci-t2ind" class="hidden">
+      <div class="row">
+        <div class="field"><label>x̄₁ : متوسط العينة الأولى</label>
+          <input type="number" id="ti_x1" step="any" placeholder="مثال: 52"></div>
+        <div class="field"><label>x̄₂ : متوسط العينة الثانية</label>
+          <input type="number" id="ti_x2" step="any" placeholder="مثال: 48"></div>
+      </div>
+      <div class="row">
+        <div class="field"><label>s₁ : الانحراف المعياري الأول</label>
+          <input type="number" id="ti_s1" step="any" min="0" placeholder="مثال: 6"></div>
+        <div class="field"><label>n₁ : حجم العينة الأولى</label>
+          <input type="number" id="ti_n1" step="1" min="2" placeholder="مثال: 20"></div>
+      </div>
+      <div class="row">
+        <div class="field"><label>s₂ : الانحراف المعياري الثاني</label>
+          <input type="number" id="ti_s2" step="any" min="0" placeholder="مثال: 7"></div>
+        <div class="field"><label>n₂ : حجم العينة الثانية</label>
+          <input type="number" id="ti_n2" step="1" min="2" placeholder="مثال: 25"></div>
+      </div>
+      <div class="note">تُحسب باستخدام الانحراف المعياري المجمَّع s<sub>p</sub> وفرضية تساوي تباين المجتمعين.</div>
+    </div>
+
+    <!-- t two-mean dependent (paired) -->
+    <div id="ci-t2dep" class="hidden">
+      <div class="field"><label>d̄ : متوسط الفرق بين العينتين</label>
+        <input type="number" id="td_dbar" step="any" placeholder="مثال: 3.5"></div>
+      <div class="row">
+        <div class="field"><label>s<sub>d</sub> : الانحراف المعياري للفرق</label>
+          <input type="number" id="td_sd" step="any" min="0" placeholder="مثال: 4"></div>
+        <div class="field"><label>n : حجم العينة (عدد الأزواج)</label>
+          <input type="number" id="td_n" step="1" min="2" placeholder="مثال: 15"></div>
+      </div>
+    </div>
+
+    <!-- difference between two proportions -->
+    <div id="ci-prop2" class="hidden">
+      <div class="row">
+        <div class="field"><label>p̂₁ : نسبة العينة الأولى <span class="hint">(0–1)</span></label>
+          <input type="number" id="pp_p1" step="any" min="0" max="1" placeholder="مثال: 0.45"></div>
+        <div class="field"><label>n₁ : حجم العينة الأولى</label>
+          <input type="number" id="pp_n1" step="1" min="1" placeholder="مثال: 150"></div>
+      </div>
+      <div class="row">
+        <div class="field"><label>p̂₂ : نسبة العينة الثانية <span class="hint">(0–1)</span></label>
+          <input type="number" id="pp_p2" step="any" min="0" max="1" placeholder="مثال: 0.38"></div>
+        <div class="field"><label>n₂ : حجم العينة الثانية</label>
+          <input type="number" id="pp_n2" step="1" min="1" placeholder="مثال: 180"></div>
+      </div>
+    </div>
+
+    <!-- ratio of two variances (F) -->
+    <div id="ci-var2" class="hidden">
+      <div class="row">
+        <div class="field"><label>s₁² : تباين العينة الأولى</label>
+          <input type="number" id="vr_s1" step="any" min="0" placeholder="مثال: 36"></div>
+        <div class="field"><label>n₁ : حجم العينة الأولى</label>
+          <input type="number" id="vr_n1" step="1" min="2" placeholder="مثال: 20"></div>
+      </div>
+      <div class="row">
+        <div class="field"><label>s₂² : تباين العينة الثانية</label>
+          <input type="number" id="vr_s2" step="any" min="0" placeholder="مثال: 49"></div>
+        <div class="field"><label>n₂ : حجم العينة الثانية</label>
+          <input type="number" id="vr_n2" step="1" min="2" placeholder="مثال: 25"></div>
+      </div>
+      <div class="note">فترة الثقة هنا للنسبة بين تبايني المجتمعين σ₁²/σ₂² باستخدام توزيع F.</div>
+    </div>
+
     <button class="btn primary full" onclick="computeCI()">حساب فترة الثقة</button>
 
     <div class="result" id="ciResult">
@@ -342,7 +414,7 @@
 
     <h3>تبويب «فترات الثقة»</h3>
     <ul>
-      <li>اختر نوع الفترة: للمتوسط (t)، أو للتباين (كاي تربيع)، أو للنسبة.</li>
+      <li>اختر نوع الفترة: للمتوسط (t)، للتباين (كاي تربيع)، للنسبة، للفرق بين متوسطين (مستقلين أو مزدوجة)، للفرق بين نسبتين، أو للنسبة بين تباينين (F).</li>
       <li>اختر مستوى الثقة (90% أو 95% أو 99%)، ثم أدخل بيانات العينة واضغط «حساب فترة الثقة».</li>
     </ul>
 
@@ -517,6 +589,10 @@ function onCiTypeChange(){
   document.getElementById('ci-t').classList.toggle('hidden',t!=='t');
   document.getElementById('ci-chi').classList.toggle('hidden',t!=='chi');
   document.getElementById('ci-prop').classList.toggle('hidden',t!=='prop');
+  document.getElementById('ci-t2ind').classList.toggle('hidden',t!=='t2ind');
+  document.getElementById('ci-t2dep').classList.toggle('hidden',t!=='t2dep');
+  document.getElementById('ci-prop2').classList.toggle('hidden',t!=='prop2');
+  document.getElementById('ci-var2').classList.toggle('hidden',t!=='var2');
 }
 function onCiLevelChange(){
   document.getElementById('ciLevelCustomWrap').classList.toggle('hidden',document.getElementById('ciLevel').value!=='custom');
@@ -556,7 +632,7 @@ function computeCI(){
       <div class="rval teal">[ ${lo.toFixed(4)} , ${hi.toFixed(4)} ]</div>
       <div class="rsmall">للانحراف المعياري σ:  [ ${Math.sqrt(lo).toFixed(4)} , ${Math.sqrt(hi).toFixed(4)} ]</div>`;
   }
-  else{
+  else if(type==='prop'){
     const ph=num('p_phat'),n=num('p_n');
     if(!(ph>=0&&ph<=1))return showErr('ciResult','أدخل نسبة p̂ بين 0 و 1');
     if(!(n>=1)||!Number.isInteger(n))return showErr('ciResult','أدخل حجم عينة n عددًا صحيحًا ≥ 1');
@@ -566,6 +642,52 @@ function computeCI(){
     box.innerHTML=`<div class="rtitle">فترة الثقة للنسبة p — ثقة ${fmtPct(conf)}</div>
       <div class="rval teal">[ ${lo.toFixed(4)} , ${hi.toFixed(4)} ]</div>
       <div class="rsmall">Z الحرجة = ${zc.toFixed(4)}  |  هامش الخطأ = ${me.toFixed(4)}</div>`;
+  }
+  else if(type==='t2ind'){
+    const x1=num('ti_x1'),x2=num('ti_x2'),s1=num('ti_s1'),n1=num('ti_n1'),s2=num('ti_s2'),n2=num('ti_n2');
+    if(isNaN(x1)||isNaN(x2))return showErr('ciResult','أدخل متوسطَي العينتين x̄₁ و x̄₂');
+    if(!(s1>=0)||!(s2>=0))return showErr('ciResult','أدخل انحرافين معياريين s₁ و s₂ (≥ 0)');
+    if(!(n1>=2)||!Number.isInteger(n1)||!(n2>=2)||!Number.isInteger(n2))return showErr('ciResult','أدخل حجمي عينة n₁ و n₂ (عددان صحيحان ≥ 2)');
+    const df=n1+n2-2;
+    const sp=Math.sqrt(((n1-1)*s1*s1+(n2-1)*s2*s2)/df);
+    const tc=tInv(1-alpha/2,df), me=tc*sp*Math.sqrt(1/n1+1/n2), diff=x1-x2;
+    box.className='result show';
+    box.innerHTML=`<div class="rtitle">فترة الثقة للفرق بين متوسطين (مستقلين، t) — ثقة ${fmtPct(conf)} ، df=${df}</div>
+      <div class="rval teal">[ ${(diff-me).toFixed(4)} , ${(diff+me).toFixed(4)} ]</div>
+      <div class="rsmall">x̄₁−x̄₂ = ${diff.toFixed(4)}  |  s_p = ${sp.toFixed(4)}  |  t = ${tc.toFixed(4)}  |  هامش الخطأ = ${me.toFixed(4)}</div>`;
+  }
+  else if(type==='t2dep'){
+    const d=num('td_dbar'),sd=num('td_sd'),n=num('td_n');
+    if(isNaN(d))return showErr('ciResult','أدخل متوسط الفرق d̄');
+    if(!(sd>=0))return showErr('ciResult','أدخل انحرافًا معياريًا للفرق s_d (≥ 0)');
+    if(!(n>=2)||!Number.isInteger(n))return showErr('ciResult','أدخل حجم عينة n (عدد صحيح ≥ 2)');
+    const df=n-1, tc=tInv(1-alpha/2,df), me=tc*sd/Math.sqrt(n);
+    box.className='result show';
+    box.innerHTML=`<div class="rtitle">فترة الثقة للفرق بين متوسطين (غير مستقلين / مزدوجة، t) — ثقة ${fmtPct(conf)} ، df=${df}</div>
+      <div class="rval teal">[ ${(d-me).toFixed(4)} , ${(d+me).toFixed(4)} ]</div>
+      <div class="rsmall">t الحرجة = ${tc.toFixed(4)}  |  هامش الخطأ = ${me.toFixed(4)}</div>`;
+  }
+  else if(type==='prop2'){
+    const p1=num('pp_p1'),n1=num('pp_n1'),p2=num('pp_p2'),n2=num('pp_n2');
+    if(!(p1>=0&&p1<=1)||!(p2>=0&&p2<=1))return showErr('ciResult','أدخل النسبتين p̂₁ و p̂₂ بين 0 و 1');
+    if(!(n1>=1)||!Number.isInteger(n1)||!(n2>=1)||!Number.isInteger(n2))return showErr('ciResult','أدخل حجمي عينة n₁ و n₂ (عددان صحيحان ≥ 1)');
+    const zc=normInv(1-alpha/2), me=zc*Math.sqrt(p1*(1-p1)/n1+p2*(1-p2)/n2), diff=p1-p2;
+    box.className='result show';
+    box.innerHTML=`<div class="rtitle">فترة الثقة للفرق بين نسبتين — ثقة ${fmtPct(conf)}</div>
+      <div class="rval teal">[ ${(diff-me).toFixed(4)} , ${(diff+me).toFixed(4)} ]</div>
+      <div class="rsmall">p̂₁−p̂₂ = ${diff.toFixed(4)}  |  Z = ${zc.toFixed(4)}  |  هامش الخطأ = ${me.toFixed(4)}</div>`;
+  }
+  else if(type==='var2'){
+    const s1=num('vr_s1'),n1=num('vr_n1'),s2=num('vr_s2'),n2=num('vr_n2');
+    if(!(s1>0)||!(s2>0))return showErr('ciResult','أدخل تباينين موجبين s₁² و s₂² (> 0)');
+    if(!(n1>=2)||!Number.isInteger(n1)||!(n2>=2)||!Number.isInteger(n2))return showErr('ciResult','أدخل حجمي عينة n₁ و n₂ (عددان صحيحان ≥ 2)');
+    const d1=n1-1, d2=n2-1, ratio=s1/s2;
+    const fU=fInv(1-alpha/2,d1,d2), fL=fInv(alpha/2,d1,d2);
+    const lo=ratio/fU, hi=ratio/fL;
+    box.className='result show';
+    box.innerHTML=`<div class="rtitle">فترة الثقة للنسبة بين تباينين σ₁²/σ₂² (F) — ثقة ${fmtPct(conf)} ، df=(${d1}, ${d2})</div>
+      <div class="rval teal">[ ${lo.toFixed(4)} , ${hi.toFixed(4)} ]</div>
+      <div class="rsmall">s₁²/s₂² = ${ratio.toFixed(4)}  |  F للحدّين = ${fU.toFixed(4)} ، ${fL.toFixed(4)}</div>`;
   }
 }
 
