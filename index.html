@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>برنامج القيم الحرجة وفترات الثقة</title>
+<title>الاستدلال الإحصائي</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&family=Cairo:wght@600;800&display=swap');
 
@@ -173,8 +173,8 @@
       <path d="M60 66 C66 66 70 54 78 54 L78 66 Z" fill="rgba(242,180,65,.45)"/>
     </svg>
     <div class="brand">
-      <h1>برنامج القيم الحرجة وفترات الثقة</h1>
-      <div class="sub">أداة تعليمية لإيجاد القيم الحرجة وفترات الثقة</div>
+      <h1>الاستدلال الإحصائي</h1>
+      <div class="sub">أداة تعليمية: القيم الحرجة · فترات الثقة · اختبارات الفروض</div>
       <div class="uni">جامعة القصيم · كلية الأعمال والاقتصاد</div>
     </div>
     <button class="about-btn" onclick="openAbout()">about ⓘ</button>
@@ -184,6 +184,7 @@
   <div class="tabs">
     <div class="tab active" id="tab-cv" onclick="switchTab('cv')">القيم الحرجة</div>
     <div class="tab" id="tab-ci" onclick="switchTab('ci')">فترات الثقة</div>
+    <div class="tab" id="tab-ht" onclick="switchTab('ht')">اختبارات الفروض</div>
   </div>
 
   <!-- ===== PANEL: CRITICAL VALUES ===== -->
@@ -377,9 +378,165 @@
     </div>
   </div>
 
+  <!-- ===== PANEL: HYPOTHESIS TESTS ===== -->
+  <div class="panel hidden" id="panel-ht">
+
+    <div class="field">
+      <label>نوع الاختبار</label>
+      <select id="htType" onchange="onHtTypeChange()">
+        <option value="t1">t — اختبار المتوسط</option>
+        <option value="t2ind">t-two mean — الفرق بين متوسطين (مستقلين)</option>
+        <option value="t2dep">t-two mean — الفرق بين متوسطين (غير مستقلين)</option>
+        <option value="prop">z — اختبار النسبة</option>
+        <option value="prop2">z — الفرق بين نسبتين</option>
+        <option value="chi">chi-square — اختبار التباين</option>
+        <option value="f">F — النسبة بين تباينين</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>مستوى المعنوية (α)</label>
+      <select id="htAlpha" onchange="onHtAlphaChange()">
+        <option value="0.10">0.10</option>
+        <option value="0.05" selected>0.05</option>
+        <option value="0.025">0.025</option>
+        <option value="0.01">0.01</option>
+        <option value="0.005">0.005</option>
+        <option value="0.001">0.001</option>
+        <option value="custom">قيمة أخرى…</option>
+      </select>
+    </div>
+    <div class="field hidden" id="htAlphaCustomWrap">
+      <label>أدخل قيمة α <span class="hint">(بين 0 و 0.5)</span></label>
+      <input type="number" id="htAlphaCustom" step="0.001" min="0.0001" max="0.5" placeholder="مثال: 0.02">
+    </div>
+
+    <div class="field">
+      <label>نوع الاختبار (الفرضية البديلة H₁)</label>
+      <select id="htDir">
+        <option value="right">طرف واحد أيمن</option>
+        <option value="two" selected>طرفين</option>
+        <option value="left">طرف واحد أيسر</option>
+      </select>
+    </div>
+
+    <!-- one mean -->
+    <div id="ht-t1" class="htbox">
+      <div class="field"><label>μ₀ : القيمة المفترضة للمتوسط</label>
+        <input type="number" id="h1_mu0" step="any" placeholder="مثال: 50"></div>
+      <div class="row">
+        <div class="field"><label>x̄ : متوسط العينة</label>
+          <input type="number" id="h1_xbar" step="any" placeholder="مثال: 53"></div>
+        <div class="field"><label>n : حجم العينة</label>
+          <input type="number" id="h1_n" step="1" min="2" placeholder="مثال: 25"></div>
+      </div>
+      <div class="field"><label>s : الانحراف المعياري للعينة</label>
+        <input type="number" id="h1_s" step="any" min="0" placeholder="مثال: 8"></div>
+    </div>
+
+    <!-- two mean independent -->
+    <div id="ht-t2ind" class="htbox hidden">
+      <div class="row">
+        <div class="field"><label>x̄₁ : متوسط العينة الأولى</label>
+          <input type="number" id="h2_x1" step="any" placeholder="مثال: 52"></div>
+        <div class="field"><label>x̄₂ : متوسط العينة الثانية</label>
+          <input type="number" id="h2_x2" step="any" placeholder="مثال: 48"></div>
+      </div>
+      <div class="row">
+        <div class="field"><label>s₁ : الانحراف المعياري الأول</label>
+          <input type="number" id="h2_s1" step="any" min="0" placeholder="مثال: 6"></div>
+        <div class="field"><label>n₁ : حجم العينة الأولى</label>
+          <input type="number" id="h2_n1" step="1" min="2" placeholder="مثال: 20"></div>
+      </div>
+      <div class="row">
+        <div class="field"><label>s₂ : الانحراف المعياري الثاني</label>
+          <input type="number" id="h2_s2" step="any" min="0" placeholder="مثال: 7"></div>
+        <div class="field"><label>n₂ : حجم العينة الثانية</label>
+          <input type="number" id="h2_n2" step="1" min="2" placeholder="مثال: 25"></div>
+      </div>
+      <div class="note">تُحسب باستخدام الانحراف المجمَّع s<sub>p</sub> ودرجة حرية n₁+n₂−2.</div>
+    </div>
+
+    <!-- two mean dependent (paired) -->
+    <div id="ht-t2dep" class="htbox hidden">
+      <div class="field"><label>d̄ : متوسط الفرق بين العينتين</label>
+        <input type="number" id="hd_dbar" step="any" placeholder="مثال: 3.5"></div>
+      <div class="row">
+        <div class="field"><label>s<sub>d</sub> : الانحراف المعياري للفرق</label>
+          <input type="number" id="hd_sd" step="any" min="0" placeholder="مثال: 4"></div>
+        <div class="field"><label>n : حجم العينة (عدد الأزواج)</label>
+          <input type="number" id="hd_n" step="1" min="2" placeholder="مثال: 15"></div>
+      </div>
+      <div class="note">الفرض الصفري H₀: μ_d = 0.</div>
+    </div>
+
+    <!-- proportion -->
+    <div id="ht-prop" class="htbox hidden">
+      <div class="field"><label>p₀ : القيمة المفترضة للنسبة <span class="hint">(0–1)</span></label>
+        <input type="number" id="hp_p0" step="any" min="0" max="1" placeholder="مثال: 0.5"></div>
+      <div class="row">
+        <div class="field"><label>p̂ : النسبة في العينة <span class="hint">(0–1)</span></label>
+          <input type="number" id="hp_phat" step="any" min="0" max="1" placeholder="مثال: 0.58"></div>
+        <div class="field"><label>n : حجم العينة</label>
+          <input type="number" id="hp_n" step="1" min="1" placeholder="مثال: 200"></div>
+      </div>
+      <div class="note">الإحصائية تُحسب من p₀ (وليس من s): z = (p̂−p₀) / √(p₀·q₀/n).</div>
+    </div>
+
+    <!-- two proportions -->
+    <div id="ht-prop2" class="htbox hidden">
+      <div class="row">
+        <div class="field"><label>p̂₁ : نسبة العينة الأولى <span class="hint">(0–1)</span></label>
+          <input type="number" id="hpp_p1" step="any" min="0" max="1" placeholder="مثال: 0.45"></div>
+        <div class="field"><label>n₁ : حجم العينة الأولى</label>
+          <input type="number" id="hpp_n1" step="1" min="1" placeholder="مثال: 150"></div>
+      </div>
+      <div class="row">
+        <div class="field"><label>p̂₂ : نسبة العينة الثانية <span class="hint">(0–1)</span></label>
+          <input type="number" id="hpp_p2" step="any" min="0" max="1" placeholder="مثال: 0.38"></div>
+        <div class="field"><label>n₂ : حجم العينة الثانية</label>
+          <input type="number" id="hpp_n2" step="1" min="1" placeholder="مثال: 180"></div>
+      </div>
+    </div>
+
+    <!-- variance -->
+    <div id="ht-chi" class="htbox hidden">
+      <div class="field"><label>σ₀² : القيمة المفترضة للتباين</label>
+        <input type="number" id="hc_s02" step="any" min="0" placeholder="مثال: 64"></div>
+      <div class="row">
+        <div class="field"><label>s² : تباين العينة</label>
+          <input type="number" id="hc_s2" step="any" min="0" placeholder="مثال: 90"></div>
+        <div class="field"><label>n : حجم العينة</label>
+          <input type="number" id="hc_n" step="1" min="2" placeholder="مثال: 25"></div>
+      </div>
+    </div>
+
+    <!-- ratio of variances -->
+    <div id="ht-f" class="htbox hidden">
+      <div class="row">
+        <div class="field"><label>s₁² : تباين العينة الأولى</label>
+          <input type="number" id="hf_s1" step="any" min="0" placeholder="مثال: 90"></div>
+        <div class="field"><label>n₁ : حجم العينة الأولى</label>
+          <input type="number" id="hf_n1" step="1" min="2" placeholder="مثال: 20"></div>
+      </div>
+      <div class="row">
+        <div class="field"><label>s₂² : تباين العينة الثانية</label>
+          <input type="number" id="hf_s2" step="any" min="0" placeholder="مثال: 45"></div>
+        <div class="field"><label>n₂ : حجم العينة الثانية</label>
+          <input type="number" id="hf_n2" step="1" min="2" placeholder="مثال: 25"></div>
+      </div>
+    </div>
+
+    <button class="btn amber full" onclick="computeHT()">حساب الاختبار واتخاذ القرار</button>
+
+    <div class="result" id="htResult">
+      <span class="placeholder">إحصائية الاختبار والقرار سيظهران هنا، ويُفتح رسم منطقة الرفض.</span>
+    </div>
+  </div>
+
   <!-- ===== FOOTER ===== -->
   <footer>
-    <div class="credit">برنامج القيم الحرجة وفترات الثقة — إعداد: د. نزار عبد الله الصوفي</div>
+    <div class="credit">الاستدلال الإحصائي — إعداد: د. نزار عبد الله الصوفي</div>
     <div>قسم نظم المعلومات الإدارية — كلية الأعمال والاقتصاد — جامعة القصيم</div>
     <div class="copy">© جميع الحقوق محفوظة — 2026</div>
     <div class="ver">v 1.0.0</div>
@@ -416,6 +573,13 @@
     <ul>
       <li>اختر نوع الفترة: للمتوسط (t)، للتباين (كاي تربيع)، للنسبة، للفرق بين متوسطين (مستقلين أو مزدوجة)، للفرق بين نسبتين، أو للنسبة بين تباينين (F).</li>
       <li>اختر مستوى الثقة (90% أو 95% أو 99%)، ثم أدخل بيانات العينة واضغط «حساب فترة الثقة».</li>
+    </ul>
+
+    <h3>تبويب «اختبارات الفروض»</h3>
+    <ul>
+      <li>اختر نوع الاختبار (سبعة اختبارات: المتوسط، الفرق بين متوسطين مستقلين/مزدوجين، النسبة، الفرق بين نسبتين، التباين، النسبة بين تباينين).</li>
+      <li>اختر مستوى المعنوية α، ثم نوع الاختبار (طرف أيمن / أيسر / طرفين)، وأدخل البيانات والقيمة المفترضة.</li>
+      <li>اضغط «حساب الاختبار واتخاذ القرار»: تظهر إحصائية الاختبار والقيمة الحرجة والقرار (رفض H₀ أو عدم رفضه)، وتُفتح نافذة الرسم مع تظليل منطقة الرفض وموضع الإحصائية.</li>
     </ul>
 
     <h3>إعداد</h3>
@@ -494,8 +658,10 @@ function fPDF(x,d1,d2){if(x<=0)return 0;return Math.exp(gammaln((d1+d2)/2)-gamma
 function switchTab(t){
   document.getElementById('tab-cv').classList.toggle('active',t==='cv');
   document.getElementById('tab-ci').classList.toggle('active',t==='ci');
+  document.getElementById('tab-ht').classList.toggle('active',t==='ht');
   document.getElementById('panel-cv').classList.toggle('hidden',t!=='cv');
   document.getElementById('panel-ci').classList.toggle('hidden',t!=='ci');
+  document.getElementById('panel-ht').classList.toggle('hidden',t!=='ht');
 }
 function onDistChange(){
   const d=document.getElementById('dist').value;
@@ -692,6 +858,147 @@ function computeCI(){
 }
 
 /* ============================================================
+   اختبارات الفروض
+   ============================================================ */
+const HT_DEF = {
+  t1:   {dist:'t', H:['μ > μ₀','μ < μ₀','μ ≠ μ₀'], box:'ht-t1', name:'اختبار المتوسط (t)'},
+  t2ind:{dist:'t',      H:['μ₁ > μ₂','μ₁ < μ₂','μ₁ ≠ μ₂'], box:'ht-t2ind', name:'الفرق بين متوسطين — مستقلين (t)'},
+  t2dep:{dist:'t',      H:['μ_d > 0','μ_d < 0','μ_d ≠ 0'], box:'ht-t2dep', name:'الفرق بين متوسطين — مزدوجة (t)'},
+  prop: {dist:'z',      H:['p > p₀','p < p₀','p ≠ p₀'], box:'ht-prop', name:'اختبار النسبة (z)'},
+  prop2:{dist:'z',      H:['p₁ > p₂','p₁ < p₂','p₁ ≠ p₂'], box:'ht-prop2', name:'الفرق بين نسبتين (z)'},
+  chi:  {dist:'chi',    H:['σ² > σ₀²','σ² < σ₀²','σ² ≠ σ₀²'], box:'ht-chi', name:'اختبار التباين (كاي تربيع)'},
+  f:    {dist:'f',      H:['σ₁² > σ₂²','σ₁² < σ₂²','σ₁² ≠ σ₂²'], box:'ht-f', name:'النسبة بين تباينين (F)'}
+};
+function onHtTypeChange(){
+  const t=document.getElementById('htType').value, def=HT_DEF[t];
+  Object.values(HT_DEF).forEach(d=>document.getElementById(d.box).classList.add('hidden'));
+  document.getElementById(def.box).classList.remove('hidden');
+  const sel=document.getElementById('htDir');
+  sel.options[0].text='طرف واحد أيمن — '+def.H[0];
+  sel.options[1].text='طرفين — '+def.H[2];
+  sel.options[2].text='طرف واحد أيسر — '+def.H[1];
+}
+function onHtAlphaChange(){
+  document.getElementById('htAlphaCustomWrap').classList.toggle('hidden',document.getElementById('htAlpha').value!=='custom');
+}
+function getHtAlpha(){
+  const v=document.getElementById('htAlpha').value;
+  return v==='custom'?parseFloat(document.getElementById('htAlphaCustom').value):parseFloat(v);
+}
+
+function computeHT(){
+  const type=document.getElementById('htType').value;
+  const dir=document.getElementById('htDir').value;     // right | left | two
+  const alpha=getHtAlpha();
+  const def=HT_DEF[type];
+  const num=id=>parseFloat(document.getElementById(id).value);
+  const err=m=>showErr('htResult',m);
+  if(!(alpha>0&&alpha<0.5))return err('أدخل مستوى معنوية صحيحًا بين 0 و 0.5');
+
+  let stat, dist, df1, df2=null, H0, statLabel;
+
+  if(type==='t1'){
+    const mu0=num('h1_mu0'),xb=num('h1_xbar'),n=num('h1_n'),s=num('h1_s');
+    if(isNaN(mu0))return err('أدخل القيمة المفترضة μ₀');
+    if(isNaN(xb))return err('أدخل متوسط العينة x̄');
+    if(!(s>0))return err('أدخل انحرافًا معياريًا s > 0');
+    if(!(n>=2)||!Number.isInteger(n))return err('أدخل حجم عينة n (عدد صحيح ≥ 2)');
+    df1=n-1; dist='t'; stat=(xb-mu0)/(s/Math.sqrt(n));
+    H0='μ = '+mu0; statLabel='t';
+  }
+  else if(type==='t2ind'){
+    const x1=num('h2_x1'),x2=num('h2_x2'),s1=num('h2_s1'),n1=num('h2_n1'),s2=num('h2_s2'),n2=num('h2_n2');
+    if(isNaN(x1)||isNaN(x2))return err('أدخل متوسطَي العينتين');
+    if(!(s1>0)||!(s2>0))return err('أدخل انحرافين معياريين s₁ و s₂ (> 0)');
+    if(!(n1>=2)||!Number.isInteger(n1)||!(n2>=2)||!Number.isInteger(n2))return err('أدخل حجمي عينة صحيحين ≥ 2');
+    df1=n1+n2-2; dist='t';
+    const sp=Math.sqrt(((n1-1)*s1*s1+(n2-1)*s2*s2)/df1);
+    stat=(x1-x2)/(sp*Math.sqrt(1/n1+1/n2));
+    H0='μ₁ = μ₂'; statLabel='t';
+  }
+  else if(type==='t2dep'){
+    const d=num('hd_dbar'),sd=num('hd_sd'),n=num('hd_n');
+    if(isNaN(d))return err('أدخل متوسط الفرق d̄');
+    if(!(sd>0))return err('أدخل انحرافًا معياريًا للفرق s_d (> 0)');
+    if(!(n>=2)||!Number.isInteger(n))return err('أدخل حجم عينة n (عدد صحيح ≥ 2)');
+    df1=n-1; dist='t'; stat=d/(sd/Math.sqrt(n)); H0='μ_d = 0'; statLabel='t';
+  }
+  else if(type==='prop'){
+    const p0=num('hp_p0'),ph=num('hp_phat'),n=num('hp_n');
+    if(!(p0>0&&p0<1))return err('أدخل p₀ بين 0 و 1');
+    if(!(ph>=0&&ph<=1))return err('أدخل p̂ بين 0 و 1');
+    if(!(n>=1)||!Number.isInteger(n))return err('أدخل حجم عينة n (عدد صحيح ≥ 1)');
+    dist='z'; stat=(ph-p0)/Math.sqrt(p0*(1-p0)/n); H0='p = '+p0; statLabel='z';
+  }
+  else if(type==='prop2'){
+    const p1=num('hpp_p1'),n1=num('hpp_n1'),p2=num('hpp_p2'),n2=num('hpp_n2');
+    if(!(p1>=0&&p1<=1)||!(p2>=0&&p2<=1))return err('أدخل النسبتين بين 0 و 1');
+    if(!(n1>=1)||!Number.isInteger(n1)||!(n2>=1)||!Number.isInteger(n2))return err('أدخل حجمي عينة صحيحين ≥ 1');
+    dist='z'; stat=(p1-p2)/Math.sqrt(p1*(1-p1)/n1+p2*(1-p2)/n2); H0='p₁ = p₂'; statLabel='z';
+  }
+  else if(type==='chi'){
+    const s02=num('hc_s02'),s2=num('hc_s2'),n=num('hc_n');
+    if(!(s02>0))return err('أدخل σ₀² > 0');
+    if(!(s2>=0))return err('أدخل تباين العينة s² ≥ 0');
+    if(!(n>=2)||!Number.isInteger(n))return err('أدخل حجم عينة n (عدد صحيح ≥ 2)');
+    df1=n-1; dist='chi'; stat=(n-1)*s2/s02; H0='σ² = '+s02; statLabel='χ²';
+  }
+  else{ // f
+    const s1=num('hf_s1'),n1=num('hf_n1'),s2=num('hf_s2'),n2=num('hf_n2');
+    if(!(s1>0)||!(s2>0))return err('أدخل تباينين موجبين s₁² و s₂² (> 0)');
+    if(!(n1>=2)||!Number.isInteger(n1)||!(n2>=2)||!Number.isInteger(n2))return err('أدخل حجمي عينة صحيحين ≥ 2');
+    df1=n1-1; df2=n2-1; dist='f'; stat=s1/s2; H0='σ₁² = σ₂²'; statLabel='F';
+  }
+
+  // critical value(s), rejection rule, p-value, shading
+  const inv = dist==='z' ? (q=>normInv(q))
+            : dist==='t' ? (q=>tInv(q,df1))
+            : dist==='chi'? (q=>chiInv(q,df1))
+            : (q=>fInv(q,df1,df2));
+  const cdf = dist==='z' ? (x=>normCDF(x))
+            : dist==='t' ? (x=>tCDF(x,df1))
+            : dist==='chi'? (x=>chiCDF(x,df1))
+            : (x=>fCDF(x,df1,df2));
+  const lowLimit = (dist==='chi'||dist==='f') ? 0 : -1e9;
+
+  let lines=[], shade=[], reject=false, pval, critText;
+  if(dir==='right'){
+    const c=inv(1-alpha); lines=[c]; shade=[{from:c,to:1e9,col:'amber'}];
+    reject = stat>c; pval=1-cdf(stat); critText='القيمة الحرجة = '+c.toFixed(4);
+  }else if(dir==='left'){
+    const c=inv(alpha); lines=[c]; shade=[{from:lowLimit,to:c,col:'amber'}];
+    reject = stat<c; pval=cdf(stat); critText='القيمة الحرجة = '+c.toFixed(4);
+  }else{ // two
+    const lo=inv(alpha/2), hi=inv(1-alpha/2); lines=[lo,hi];
+    shade=[{from:lowLimit,to:lo,col:'amber'},{from:hi,to:1e9,col:'amber'}];
+    reject = (stat<lo||stat>hi);
+    const t1p=cdf(stat); pval=2*Math.min(t1p,1-t1p);
+    critText='القيمتان الحرجتان = '+lo.toFixed(4)+' ، '+hi.toFixed(4);
+  }
+  if(pval<0)pval=0; if(pval>1)pval=1;
+
+  const H1 = dir==='right'?def.H[0] : dir==='left'?def.H[1] : def.H[2];
+  const dirTxt = dir==='right'?'طرف أيمن' : dir==='left'?'طرف أيسر' : 'طرفين';
+  const decision = reject
+    ? `<span style="color:var(--amber)">رفض H₀</span>`
+    : `<span style="color:var(--teal)">عدم رفض H₀</span>`;
+
+  const box=document.getElementById('htResult');
+  box.className='result show';
+  box.innerHTML=`<div class="rtitle">${def.name} — اختبار ${dirTxt} ، α=${alpha}${df1!==null?` ، df=${df2!==null?'('+df1+', '+df2+')':df1}`:''}</div>
+    <div class="rsmall">H₀: ${H0}   |   H₁: ${H1}</div>
+    <div class="rval">${statLabel} = ${stat.toFixed(4)}</div>
+    <div class="rsmall">${critText}   |   p-value ≈ ${pval.toFixed(4)}</div>
+    <div class="rval" style="font-size:20px">القرار: ${decision}</div>`;
+
+  const plot={dist,df1,df2,alpha,tail:(dir==='two'?'two':'one'),lines,shade,
+              stat:stat,regionLabels:true,
+              cornerText:'α = '+alpha+'  ·  اختبار '+dirTxt};
+  drawPlot(plot);
+  openPopup(def.name);
+}
+
+/* ============================================================
    رسم منحنى التوزيع مع التظليل
    ============================================================ */
 function drawPlot(p){
@@ -708,11 +1015,12 @@ function drawPlot(p){
   const x0=pad.l, x1=W-pad.r, y0=H-pad.b, y1=pad.t;
 
   // domain
+  const st=(typeof p.stat==='number'&&isFinite(p.stat))?p.stat:null;
   let xmin,xmax,pdf;
-  if(p.dist==='z'){pdf=normPDF;xmin=-4;xmax=4;}
-  else if(p.dist==='t'){pdf=(x)=>tPDF(x,p.df1);const m=Math.max.apply(null,p.lines.map(Math.abs));xmin=-Math.max(4,m*1.25+0.6);xmax=-xmin;}
-  else if(p.dist==='chi'){pdf=(x)=>chiPDF(x,p.df1);const hi=Math.max.apply(null,p.lines);xmin=0;xmax=Math.max(hi*1.35,p.df1+4*Math.sqrt(2*p.df1),8);}
-  else{pdf=(x)=>fPDF(x,p.df1,p.df2);const hi=Math.max.apply(null,p.lines);xmin=0;xmax=Math.max(hi*1.5,4);}
+  if(p.dist==='z'){pdf=normPDF;const m=Math.max(4,Math.max.apply(null,p.lines.map(Math.abs)),st!==null?Math.abs(st):0);xmin=-(m*1.18+0.4);xmax=-xmin;}
+  else if(p.dist==='t'){pdf=(x)=>tPDF(x,p.df1);const m=Math.max.apply(null,p.lines.map(Math.abs).concat(st!==null?[Math.abs(st)]:[]));xmin=-Math.max(4,m*1.22+0.6);xmax=-xmin;}
+  else if(p.dist==='chi'){pdf=(x)=>chiPDF(x,p.df1);const hi=Math.max.apply(null,p.lines.concat(st!==null?[st]:[]));xmin=0;xmax=Math.max(hi*1.35,p.df1+4*Math.sqrt(2*p.df1),8);}
+  else{pdf=(x)=>fPDF(x,p.df1,p.df2);const hi=Math.max.apply(null,p.lines.concat(st!==null?[st]:[]));xmin=0;xmax=Math.max(hi*1.5,4);}
 
   const N=400, xs=[],ys=[]; let ymax=0;
   for(let i=0;i<=N;i++){const x=xmin+(xmax-xmin)*i/N;const y=pdf(x);xs.push(x);ys.push(y);if(y>ymax)ymax=y;}
@@ -752,9 +1060,33 @@ function drawPlot(p){
     ctx.fillText(c.toFixed(3),px,y0+16);
   });
 
-  // alpha label
-  ctx.fillStyle='#475569'; ctx.textAlign='left';
-  ctx.fillText('α = '+p.alpha+(p.tail==='two'?'  (طرفين)':'  (طرف واحد)'),x0,y1+2);
+  // region labels (hypothesis testing)
+  if(p.regionLabels){
+    ctx.font='11px Tahoma';
+    ctx.fillStyle='#b45309';
+    p.shade.forEach(sh=>{
+      const isRight = sh.from>(xmin+xmax)/2;
+      if(isRight){ctx.textAlign='right';ctx.fillText('منطقة الرفض',x1-4,y1+34);}
+      else{ctx.textAlign='left';ctx.fillText('منطقة الرفض',x0+4,y1+34);}
+    });
+    ctx.fillStyle='#0d8e80'; ctx.textAlign='center';
+    ctx.fillText('منطقة عدم الرفض',(x0+x1)/2,y0-10);
+  }
+
+  // test statistic marker
+  if(st!==null){
+    const sx=X(Math.max(xmin,Math.min(xmax,st)));
+    ctx.strokeStyle='#1d4ed8'; ctx.lineWidth=2.2; ctx.setLineDash([]);
+    ctx.beginPath();ctx.moveTo(sx,y0);ctx.lineTo(sx,y1+12);ctx.stroke();
+    ctx.fillStyle='#1d4ed8';
+    ctx.beginPath();ctx.arc(sx,y0,4,0,2*Math.PI);ctx.fill();
+    ctx.font='bold 12px Tahoma'; ctx.textAlign='center';
+    ctx.fillText('الإحصائية = '+st.toFixed(3),sx,y1+10);
+  }
+
+  // corner label
+  ctx.font='12px Tahoma'; ctx.fillStyle='#475569'; ctx.textAlign='left';
+  ctx.fillText(p.cornerText || ('α = '+p.alpha+(p.tail==='two'?'  (طرفين)':'  (طرف واحد)')),x0,y1+2);
 }
 
 /* ============================================================
@@ -797,7 +1129,7 @@ function closeAbout(){document.getElementById('aboutBack').style.display='none';
 document.getElementById('aboutBack').addEventListener('click',e=>{if(e.target.id==='aboutBack')closeAbout();});
 
 /* init */
-onDistChange(); onCiTypeChange(); onCiLevelChange();
+onDistChange(); onCiTypeChange(); onCiLevelChange(); onHtTypeChange(); onHtAlphaChange();
 </script>
 </body>
 </html>
