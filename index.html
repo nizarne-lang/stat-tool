@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>برنامج القيم الحرجة وفترات الثقة</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&family=Cairo:wght@600;800&display=swap');
+
+  :root{
+    --bg1:#0c1218; --bg2:#121b24;
+    --panel:#16212c; --panel2:#1b2935;
+    --line:#27384a; --line-soft:#1f2e3c;
+    --text:#eaf2f7; --muted:#8fa6b5; --faint:#5d7283;
+    --teal:#14b8a6; --teal-deep:#0d8e80; --teal-glow:rgba(20,184,166,.18);
+    --amber:#f2b441; --amber-soft:rgba(242,180,65,.16);
+    --red:#ff6b6b;
+    --shade1:rgba(242,180,65,.32);
+    --shade2:rgba(20,184,166,.32);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:'Tajawal','Segoe UI',Tahoma,'Geeza Pro',sans-serif;
+    background:
+      radial-gradient(1200px 600px at 80% -10%, rgba(20,184,166,.10), transparent 60%),
+      radial-gradient(900px 500px at -10% 110%, rgba(242,180,65,.06), transparent 55%),
+      linear-gradient(160deg,var(--bg1),var(--bg2));
+    color:var(--text); min-height:100vh;
+    padding:28px 16px 40px; line-height:1.7;
+  }
+  .wrap{max-width:880px;margin:0 auto}
+
+  /* ---------- Header / Logo ---------- */
+  header{
+    display:flex;align-items:center;gap:18px;
+    background:linear-gradient(135deg,rgba(22,33,44,.9),rgba(13,142,128,.10));
+    border:1px solid var(--line);border-radius:18px;
+    padding:18px 22px;position:relative;overflow:hidden;
+    box-shadow:0 10px 40px rgba(0,0,0,.35);
+  }
+  header::after{content:"";position:absolute;inset:0;
+    background:radial-gradient(400px 120px at 90% 0%,var(--teal-glow),transparent 70%);pointer-events:none}
+  .emblem{flex:0 0 auto;width:64px;height:64px;filter:drop-shadow(0 4px 10px rgba(20,184,166,.35))}
+  .brand h1{font-family:'Cairo',sans-serif;font-size:22px;font-weight:800;letter-spacing:.2px}
+  .brand .sub{color:var(--muted);font-size:13.5px;margin-top:2px}
+  .brand .uni{color:var(--teal);font-weight:700;font-size:13px;margin-top:3px}
+  .about-btn{
+    margin-inline-start:auto;flex:0 0 auto;align-self:flex-start;
+    background:var(--panel2);color:var(--text);border:1px solid var(--line);
+    border-radius:10px;padding:8px 16px;font-family:inherit;font-size:14px;font-weight:600;
+    cursor:pointer;transition:.2s;z-index:2
+  }
+  .about-btn:hover{border-color:var(--teal);color:var(--teal)}
+
+  /* ---------- Tabs ---------- */
+  .tabs{display:flex;gap:10px;margin:22px 0 0}
+  .tab{
+    flex:1;text-align:center;padding:14px;border-radius:14px 14px 0 0;
+    background:var(--panel);border:1px solid var(--line);border-bottom:none;
+    cursor:pointer;font-weight:700;font-size:16px;color:var(--muted);transition:.2s
+  }
+  .tab.active{background:var(--panel2);color:var(--text);box-shadow:inset 0 3px 0 var(--teal)}
+  .tab:hover:not(.active){color:var(--text)}
+
+  .panel{
+    background:var(--panel2);border:1px solid var(--line);border-radius:0 0 18px 18px;
+    padding:26px;box-shadow:0 14px 50px rgba(0,0,0,.35)
+  }
+  .hidden{display:none!important}
+
+  /* ---------- Form fields ---------- */
+  .field{margin-bottom:18px}
+  .field>label{display:block;font-weight:700;font-size:14.5px;margin-bottom:8px;color:var(--text)}
+  .field .hint{color:var(--faint);font-weight:400;font-size:12.5px}
+  select,input[type=number]{
+    width:100%;background:#0e161e;border:1px solid var(--line);border-radius:11px;
+    padding:13px 14px;color:var(--text);font-family:inherit;font-size:15.5px;outline:none;transition:.2s
+  }
+  select:focus,input:focus{border-color:var(--teal);box-shadow:0 0 0 3px var(--teal-glow)}
+  .row{display:flex;gap:14px;flex-wrap:wrap}
+  .row>.field{flex:1;min-width:160px}
+
+  .btn-row{display:flex;gap:12px;flex-wrap:wrap;margin-top:6px}
+  .btn{
+    flex:1;min-width:180px;border:none;border-radius:12px;padding:14px;cursor:pointer;
+    font-family:inherit;font-size:15.5px;font-weight:700;transition:.18s;color:#06231f
+  }
+  .btn.primary{background:linear-gradient(135deg,var(--teal),var(--teal-deep));box-shadow:0 6px 18px rgba(20,184,166,.3)}
+  .btn.amber{background:linear-gradient(135deg,var(--amber),#d99a26);color:#2a1c00;box-shadow:0 6px 18px rgba(242,180,65,.25)}
+  .btn:hover{transform:translateY(-2px);filter:brightness(1.06)}
+  .btn:active{transform:translateY(0)}
+  .btn.full{width:100%;flex:none}
+
+  /* ---------- Result box ---------- */
+  .result{
+    margin-top:20px;background:#0e161e;border:1px dashed var(--line);border-radius:14px;
+    padding:18px 20px;min-height:56px;display:flex;flex-direction:column;gap:6px;
+    transition:.25s
+  }
+  .result.show{border-style:solid;border-color:var(--teal);box-shadow:inset 0 0 0 1px rgba(20,184,166,.25)}
+  .result .placeholder{color:var(--faint);font-size:14px}
+  .result .rtitle{font-size:13px;color:var(--muted);font-weight:600}
+  .result .rval{font-family:'Cairo',monospace;font-size:26px;font-weight:800;color:var(--amber);direction:ltr;text-align:right}
+  .result .rval.teal{color:var(--teal)}
+  .result .rsmall{font-size:13px;color:var(--muted);direction:ltr;text-align:right}
+  .result.err{border-color:var(--red);color:#ffd0d0}
+  .result.err .placeholder{color:#ffb3b3}
+
+  .note{font-size:12.5px;color:var(--faint);margin-top:14px;line-height:1.6}
+
+  /* ---------- Plot popup (draggable) ---------- */
+  .modal-back{position:fixed;inset:0;background:transparent;display:none;z-index:50}
+  .popup{
+    position:fixed;top:90px;left:50%;transform:translateX(-50%);
+    width:min(620px,94vw);background:var(--panel);border:1px solid var(--teal);
+    border-radius:16px;box-shadow:0 25px 70px rgba(0,0,0,.6);z-index:60;display:none;overflow:hidden
+  }
+  .popup-head{
+    display:flex;align-items:center;gap:10px;padding:12px 16px;cursor:move;
+    background:linear-gradient(135deg,rgba(20,184,166,.18),rgba(22,33,44,.4));
+    border-bottom:1px solid var(--line);user-select:none
+  }
+  .popup-head .pt{font-weight:700;font-size:15px}
+  .popup-head .grip{color:var(--faint);font-size:12px}
+  .popup-head .x{margin-inline-start:auto;background:var(--panel2);border:1px solid var(--line);
+    color:var(--text);width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:16px;line-height:1;transition:.2s}
+  .popup-head .x:hover{border-color:var(--red);color:var(--red)}
+  .popup-body{padding:16px}
+  canvas{width:100%;height:auto;display:block;border-radius:10px}
+  .popup-foot{display:flex;justify-content:flex-start;padding:0 16px 16px}
+  .save-btn{background:var(--panel2);border:1px solid var(--line);color:var(--text);
+    border-radius:10px;padding:9px 16px;cursor:pointer;font-family:inherit;font-weight:600;font-size:14px;transition:.2s}
+  .save-btn:hover{border-color:var(--teal);color:var(--teal)}
+
+  /* ---------- About modal ---------- */
+  .about-back{position:fixed;inset:0;background:rgba(4,8,11,.7);backdrop-filter:blur(3px);
+    display:none;z-index:80;align-items:center;justify-content:center;padding:20px}
+  .about-card{max-width:560px;width:100%;background:var(--panel2);border:1px solid var(--line);
+    border-radius:18px;padding:28px;max-height:86vh;overflow:auto;box-shadow:0 25px 70px rgba(0,0,0,.6)}
+  .about-card h2{font-family:'Cairo';font-size:20px;margin-bottom:14px;color:var(--teal)}
+  .about-card h3{font-size:15px;margin:18px 0 6px;color:var(--amber)}
+  .about-card p,.about-card li{font-size:14.5px;color:var(--text);margin-bottom:6px}
+  .about-card ul{padding-inline-start:20px}
+  .about-card .close{margin-top:22px;width:100%;background:linear-gradient(135deg,var(--teal),var(--teal-deep));
+    border:none;color:#06231f;font-weight:700;padding:12px;border-radius:11px;cursor:pointer;font-family:inherit;font-size:15px}
+
+  /* ---------- Footer ---------- */
+  footer{margin-top:26px;text-align:center;color:var(--muted);font-size:13.5px;line-height:1.9}
+  footer .credit{color:var(--text);font-weight:600}
+  footer .copy{color:var(--faint);font-size:12.5px;margin-top:6px;letter-spacing:.3px}
+  .ver{display:inline-block;background:var(--panel);border:1px solid var(--line);border-radius:20px;
+    padding:2px 12px;font-size:11.5px;color:var(--teal);direction:ltr;margin-top:8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ===== HEADER / LOGO ===== -->
+  <header>
+    <svg class="emblem" viewBox="0 0 100 100" fill="none">
+      <defs>
+        <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#2bd9c4"/><stop offset="1" stop-color="#0d8e80"/>
+        </linearGradient>
+      </defs>
+      <path d="M50 6 L88 24 V58 C88 78 71 90 50 96 C29 90 12 78 12 58 V24 Z"
+            fill="rgba(20,184,166,.12)" stroke="url(#g1)" stroke-width="2.5"/>
+      <path d="M22 66 C34 66 36 34 50 34 C64 34 66 66 78 66"
+            stroke="url(#g1)" stroke-width="3.4" fill="none" stroke-linecap="round"/>
+      <line x1="22" y1="66" x2="78" y2="66" stroke="#2bd9c4" stroke-width="2" opacity=".6"/>
+      <line x1="60" y1="34" x2="60" y2="66" stroke="#f2b441" stroke-width="2.6" stroke-dasharray="3 3"/>
+      <path d="M60 66 C66 66 70 54 78 54 L78 66 Z" fill="rgba(242,180,65,.45)"/>
+    </svg>
+    <div class="brand">
+      <h1>برنامج القيم الحرجة وفترات الثقة</h1>
+      <div class="sub">أداة تعليمية لإيجاد القيم الحرجة وفترات الثقة</div>
+      <div class="uni">جامعة القصيم · كلية الأعمال والاقتصاد</div>
+    </div>
+    <button class="about-btn" onclick="openAbout()">about ⓘ</button>
+  </header>
+
+  <!-- ===== TABS ===== -->
+  <div class="tabs">
+    <div class="tab active" id="tab-cv" onclick="switchTab('cv')">القيم الحرجة</div>
+    <div class="tab" id="tab-ci" onclick="switchTab('ci')">فترات الثقة</div>
+  </div>
+
+  <!-- ===== PANEL: CRITICAL VALUES ===== -->
+  <div class="panel" id="panel-cv">
+
+    <div class="field">
+      <label>١) اختر التوزيع</label>
+      <select id="dist" onchange="onDistChange()">
+        <option value="z">التوزيع الطبيعي (Z)</option>
+        <option value="t">توزيع t</option>
+        <option value="chi">توزيع كاي تربيع (χ²)</option>
+        <option value="f">توزيع F</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>٢) مستوى المعنوية (α)</label>
+      <select id="alpha" onchange="onAlphaChange()">
+        <option value="0.10">0.10</option>
+        <option value="0.05" selected>0.05</option>
+        <option value="0.025">0.025</option>
+        <option value="0.01">0.01</option>
+        <option value="0.005">0.005</option>
+        <option value="0.001">0.001</option>
+        <option value="custom">قيمة أخرى…</option>
+      </select>
+    </div>
+    <div class="field hidden" id="alphaCustomWrap">
+      <label>أدخل قيمة α <span class="hint">(بين 0 و 0.5)</span></label>
+      <input type="number" id="alphaCustom" step="0.001" min="0.0001" max="0.5" placeholder="مثال: 0.02">
+    </div>
+
+    <div class="row">
+      <div class="field hidden" id="df1Wrap">
+        <label id="df1Label">٣) درجة الحرية df1</label>
+        <input type="number" id="df1" min="1" step="1" placeholder="مثال: 10">
+      </div>
+      <div class="field hidden" id="df2Wrap">
+        <label>٤) درجة الحرية df2</label>
+        <input type="number" id="df2" min="1" step="1" placeholder="مثال: 20">
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn amber" onclick="computeCritical('one')">القيمة الحرجة — طرف واحد</button>
+      <button class="btn primary" onclick="computeCritical('two')">القيمة الحرجة — طرفين</button>
+    </div>
+
+    <!-- result appears UNDER the df fields -->
+    <div class="result" id="cvResult">
+      <span class="placeholder">ستظهر القيمة الحرجة هنا، ويُفتح رسم التوزيع في نافذة منبثقة.</span>
+    </div>
+
+    <div class="note">
+      ملاحظة: التوزيع الطبيعي (Z) لا يحتاج درجات حرية، وكاي تربيع يحتاج df1 فقط، وتوزيع F يحتاج df1 و df2.
+    </div>
+  </div>
+
+  <!-- ===== PANEL: CONFIDENCE INTERVALS ===== -->
+  <div class="panel hidden" id="panel-ci">
+
+    <div class="field">
+      <label>نوع فترة الثقة</label>
+      <select id="ciType" onchange="onCiTypeChange()">
+        <option value="t">t-interval (mean) — فترة ثقة للمتوسط</option>
+        <option value="chi">Chi-square (variance) — فترة ثقة للتباين</option>
+        <option value="prop">Proportion interval — فترة ثقة للنسبة</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>مستوى الثقة</label>
+      <select id="ciLevel" onchange="onCiLevelChange()">
+        <option value="0.90">90%</option>
+        <option value="0.95" selected>95%</option>
+        <option value="0.99">99%</option>
+        <option value="custom">قيمة أخرى…</option>
+      </select>
+    </div>
+    <div class="field hidden" id="ciLevelCustomWrap">
+      <label>أدخل مستوى الثقة % <span class="hint">(بين 1 و 99.9)</span></label>
+      <input type="number" id="ciLevelCustom" step="0.1" min="1" max="99.9" placeholder="مثال: 98">
+    </div>
+
+    <!-- t-interval inputs -->
+    <div id="ci-t">
+      <div class="field">
+        <label>x̄ : متوسط العينة</label>
+        <input type="number" id="t_xbar" step="any" placeholder="مثال: 50">
+      </div>
+      <div class="row">
+        <div class="field"><label>s : الانحراف المعياري</label>
+          <input type="number" id="t_s" step="any" min="0" placeholder="مثال: 8"></div>
+        <div class="field"><label>n : حجم العينة</label>
+          <input type="number" id="t_n" step="1" min="2" placeholder="مثال: 25"></div>
+      </div>
+    </div>
+
+    <!-- chi-square inputs -->
+    <div id="ci-chi" class="hidden">
+      <div class="field"><label>s² : تباين العينة</label>
+        <input type="number" id="chi_s2" step="any" min="0" placeholder="مثال: 64"></div>
+      <div class="field"><label>n : حجم العينة</label>
+        <input type="number" id="chi_n" step="1" min="2" placeholder="مثال: 25"></div>
+    </div>
+
+    <!-- proportion inputs -->
+    <div id="ci-prop" class="hidden">
+      <div class="field"><label>p̂ : النسبة في العينة <span class="hint">(بين 0 و 1)</span></label>
+        <input type="number" id="p_phat" step="any" min="0" max="1" placeholder="مثال: 0.4"></div>
+      <div class="field"><label>n : حجم العينة</label>
+        <input type="number" id="p_n" step="1" min="1" placeholder="مثال: 200"></div>
+    </div>
+
+    <button class="btn primary full" onclick="computeCI()">حساب فترة الثقة</button>
+
+    <div class="result" id="ciResult">
+      <span class="placeholder">فترة الثقة ستظهر هنا.</span>
+    </div>
+  </div>
+
+  <!-- ===== FOOTER ===== -->
+  <footer>
+    <div class="credit">برنامج القيم الحرجة وفترات الثقة — إعداد: د. نزار عبد الله الصوفي</div>
+    <div>قسم نظم المعلومات الإدارية — كلية الأعمال والاقتصاد — جامعة القصيم</div>
+    <div class="copy">© جميع الحقوق محفوظة — 2026</div>
+    <div class="ver">v 1.0.0</div>
+  </footer>
+</div>
+
+<!-- ===== PLOT POPUP ===== -->
+<div class="modal-back" id="modalBack" onclick="closePopup()"></div>
+<div class="popup" id="popup">
+  <div class="popup-head" id="popupHead">
+    <span class="pt" id="popupTitle">منحنى التوزيع</span>
+    <span class="grip">⋮⋮ اسحب لتحريك النافذة</span>
+    <button class="x" onclick="closePopup()" title="إغلاق">✕</button>
+  </div>
+  <div class="popup-body"><canvas id="plot" width="588" height="340"></canvas></div>
+  <div class="popup-foot"><button class="save-btn" onclick="savePlot()">⬇ حفظ الرسم (PNG)</button></div>
+</div>
+
+<!-- ===== ABOUT MODAL ===== -->
+<div class="about-back" id="aboutBack">
+  <div class="about-card">
+    <h2>عن البرنامج · طريقة الاستخدام</h2>
+    <p>هذا البرنامج أداة تعليمية موجّهة للطالب لإيجاد <b>القيم الحرجة</b> لأهم التوزيعات الاحتمالية، وحساب <b>فترات الثقة</b>.</p>
+
+    <h3>تبويب «القيم الحرجة»</h3>
+    <ul>
+      <li>اختر التوزيع (Z، t، كاي تربيع، أو F).</li>
+      <li>اختر مستوى المعنوية α، أو أدخل قيمة خاصة بك.</li>
+      <li>أدخل درجات الحرية عند الحاجة: t وكاي تربيع يحتاجان df1، وتوزيع F يحتاج df1 و df2. أما Z فلا يحتاج درجات حرية.</li>
+      <li>اضغط «طرف واحد» أو «طرفين» لتظهر القيمة الحرجة، وتُفتح نافذة فيها منحنى التوزيع مع تظليل المنطقة الحرجة. يمكنك تحريك النافذة وحفظ الرسم كصورة.</li>
+    </ul>
+
+    <h3>تبويب «فترات الثقة»</h3>
+    <ul>
+      <li>اختر نوع الفترة: للمتوسط (t)، أو للتباين (كاي تربيع)، أو للنسبة.</li>
+      <li>اختر مستوى الثقة (90% أو 95% أو 99%)، ثم أدخل بيانات العينة واضغط «حساب فترة الثقة».</li>
+    </ul>
+
+    <h3>إعداد</h3>
+    <p>د. نزار عبد الله الصوفي<br>قسم نظم المعلومات الإدارية — كلية الأعمال والاقتصاد — جامعة القصيم</p>
+    <p style="color:var(--faint);font-size:13px">الإصدار 1.0.0</p>
+
+    <button class="close" onclick="closeAbout()">إغلاق</button>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   المحرك الإحصائي (بدون أي مكتبات خارجية — يعمل بدون إنترنت)
+   ============================================================ */
+function gammaln(x){
+  const g=[76.18009172947146,-86.50532032941677,24.01409824083091,
+           -1.231739572450155,0.1208650973866179e-2,-0.5395239384953e-5];
+  let xx=x,y=x,tmp=x+5.5; tmp-=(xx+0.5)*Math.log(tmp);
+  let ser=1.000000000190015;
+  for(let j=0;j<6;j++){y++;ser+=g[j]/y;}
+  return -tmp+Math.log(2.5066282746310005*ser/xx);
+}
+function gammp(a,x){
+  if(x<=0||a<=0)return x<=0?0:NaN;
+  if(x<a+1){let ap=a,sum=1/a,del=sum;
+    for(let n=0;n<500;n++){ap++;del*=x/ap;sum+=del;if(Math.abs(del)<Math.abs(sum)*1e-15)break;}
+    return sum*Math.exp(-x+a*Math.log(x)-gammaln(a));}
+  const FPMIN=1e-300;let b=x+1-a,c=1/FPMIN,d=1/b,h=d;
+  for(let i=1;i<500;i++){const an=-i*(i-a);b+=2;d=an*d+b;if(Math.abs(d)<FPMIN)d=FPMIN;
+    c=b+an/c;if(Math.abs(c)<FPMIN)c=FPMIN;d=1/d;const del=d*c;h*=del;if(Math.abs(del-1)<1e-15)break;}
+  return 1-Math.exp(-x+a*Math.log(x)-gammaln(a))*h;
+}
+function betacf(a,b,x){const FPMIN=1e-300;let qab=a+b,qap=a+1,qam=a-1;
+  let c=1,d=1-qab*x/qap;if(Math.abs(d)<FPMIN)d=FPMIN;d=1/d;let h=d;
+  for(let m=1;m<=300;m++){const m2=2*m;
+    let aa=m*(b-m)*x/((qam+m2)*(a+m2));d=1+aa*d;if(Math.abs(d)<FPMIN)d=FPMIN;
+    c=1+aa/c;if(Math.abs(c)<FPMIN)c=FPMIN;d=1/d;h*=d*c;
+    aa=-(a+m)*(qab+m)*x/((a+m2)*(qap+m2));d=1+aa*d;if(Math.abs(d)<FPMIN)d=FPMIN;
+    c=1+aa/c;if(Math.abs(c)<FPMIN)c=FPMIN;d=1/d;const del=d*c;h*=del;if(Math.abs(del-1)<1e-15)break;}
+  return h;}
+function betai(a,b,x){if(x<=0)return 0;if(x>=1)return 1;
+  const bt=Math.exp(gammaln(a+b)-gammaln(a)-gammaln(b)+a*Math.log(x)+b*Math.log(1-x));
+  return x<(a+1)/(a+b+2)?bt*betacf(a,b,x)/a:1-bt*betacf(b,a,1-x)/b;}
+
+function erf(x){const t=1/(1+0.3275911*Math.abs(x));
+  const y=1-(((((1.061405429*t-1.453152027)*t)+1.421413741)*t-0.284496736)*t+0.254829592)*t*Math.exp(-x*x);
+  return x>=0?y:-y;}
+function normCDF(x){return 0.5*(1+erf(x/Math.SQRT2));}
+function chiCDF(x,k){return x<=0?0:gammp(k/2,x/2);}
+function tCDF(t,df){const ib=betai(df/2,0.5,df/(df+t*t));return t>0?1-0.5*ib:0.5*ib;}
+function fCDF(x,d1,d2){return x<=0?0:betai(d1/2,d2/2,(d1*x)/(d1*x+d2));}
+
+function normInv(p){
+  const a=[-3.969683028665376e+01,2.209460984245205e+02,-2.759285104469687e+02,1.383577518672690e+02,-3.066479806614716e+01,2.506628277459239e+00];
+  const b=[-5.447609879822406e+01,1.615858368580409e+02,-1.556989798598866e+02,6.680131188771972e+01,-1.328068155288572e+01];
+  const c=[-7.784894002430293e-03,-3.223964580411365e-01,-2.400758277161838e+00,-2.549732539343734e+00,4.374664141464968e+00,2.938163982698783e+00];
+  const d=[7.784695709041462e-03,3.224671290700398e-01,2.445134137142996e+00,3.754408661907416e+00];
+  const pl=0.02425;
+  if(p<pl){const q=Math.sqrt(-2*Math.log(p));return(((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5])/((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1);}
+  if(p<=1-pl){const q=p-0.5,r=q*q;return(((((a[0]*r+a[1])*r+a[2])*r+a[3])*r+a[4])*r+a[5])*q/(((((b[0]*r+b[1])*r+b[2])*r+b[3])*r+b[4])*r+1);}
+  const q=Math.sqrt(-2*Math.log(1-p));return -(((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5])/((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1);}
+function bisect(cdf,p,lo,hi){for(let i=0;i<200;i++){const m=(lo+hi)/2;if(cdf(m)<p)lo=m;else hi=m;if(hi-lo<1e-10)break;}return(lo+hi)/2;}
+function chiInv(p,df){let hi=df+10;while(chiCDF(hi,df)<p&&hi<1e7)hi*=2;return bisect(x=>chiCDF(x,df),p,0,hi);}
+function tInv(p,df){if(p===0.5)return 0;let lo=-1,hi=1;while(tCDF(lo,df)>p&&lo>-1e6)lo*=2;while(tCDF(hi,df)<p&&hi<1e6)hi*=2;return bisect(x=>tCDF(x,df),p,lo,hi);}
+function fInv(p,d1,d2){let hi=2;while(fCDF(hi,d1,d2)<p&&hi<1e7)hi*=2;return bisect(x=>fCDF(x,d1,d2),p,0,hi);}
+
+/* PDFs (للرسم) */
+function normPDF(x){return Math.exp(-x*x/2)/Math.sqrt(2*Math.PI);}
+function tPDF(t,df){return Math.exp(gammaln((df+1)/2)-gammaln(df/2)-0.5*Math.log(df*Math.PI)-((df+1)/2)*Math.log(1+t*t/df));}
+function chiPDF(x,df){if(x<=0)return 0;return Math.exp(-(df/2)*Math.log(2)-gammaln(df/2)+(df/2-1)*Math.log(x)-x/2);}
+function fPDF(x,d1,d2){if(x<=0)return 0;return Math.exp(gammaln((d1+d2)/2)-gammaln(d1/2)-gammaln(d2/2)+(d1/2)*Math.log(d1/d2)+(d1/2-1)*Math.log(x)-((d1+d2)/2)*Math.log(1+(d1/d2)*x));}
+
+/* ============================================================
+   واجهة المستخدم
+   ============================================================ */
+function switchTab(t){
+  document.getElementById('tab-cv').classList.toggle('active',t==='cv');
+  document.getElementById('tab-ci').classList.toggle('active',t==='ci');
+  document.getElementById('panel-cv').classList.toggle('hidden',t!=='cv');
+  document.getElementById('panel-ci').classList.toggle('hidden',t!=='ci');
+}
+function onDistChange(){
+  const d=document.getElementById('dist').value;
+  document.getElementById('df1Wrap').classList.toggle('hidden',d==='z');
+  document.getElementById('df2Wrap').classList.toggle('hidden',d!=='f');
+  document.getElementById('df1Label').textContent = d==='f' ? '٣) درجة الحرية df1' : '٣) درجة الحرية df';
+}
+function onAlphaChange(){
+  document.getElementById('alphaCustomWrap').classList.toggle('hidden',document.getElementById('alpha').value!=='custom');
+}
+function getAlpha(){
+  const v=document.getElementById('alpha').value;
+  if(v==='custom'){const a=parseFloat(document.getElementById('alphaCustom').value);return a;}
+  return parseFloat(v);
+}
+function showErr(boxId,msg){
+  const r=document.getElementById(boxId);r.className='result err';
+  r.innerHTML='<span class="placeholder">⚠ '+msg+'</span>';
+}
+
+/* ---------- حساب القيمة الحرجة ---------- */
+let lastPlot=null;
+function computeCritical(tail){
+  const dist=document.getElementById('dist').value;
+  const alpha=getAlpha();
+  const box=document.getElementById('cvResult');
+  if(!(alpha>0&&alpha<0.5)){return showErr('cvResult','أدخل مستوى معنوية صحيحًا بين 0 و 0.5');}
+  let df1=parseFloat(document.getElementById('df1').value);
+  let df2=parseFloat(document.getElementById('df2').value);
+  if((dist==='t'||dist==='chi'||dist==='f') && !(df1>=1)){return showErr('cvResult','أدخل درجة الحرية df1 (عدد ≥ 1)');}
+  if(dist==='f' && !(df2>=1)){return showErr('cvResult','أدخل درجة الحرية df2 (عدد ≥ 1)');}
+
+  const distName={z:'الطبيعي (Z)',t:'t',chi:'كاي تربيع (χ²)',f:'F'}[dist];
+  let html='', plot={dist,df1,df2,alpha,tail,lines:[],shade:[]};
+
+  if(dist==='z'||dist==='t'){
+    const inv = dist==='z'? (p=>normInv(p)) : (p=>tInv(p,df1));
+    if(tail==='one'){
+      const c=inv(1-alpha);
+      html=`<div class="rtitle">القيمة الحرجة (طرف واحد) — ${distName} ، α=${alpha}${dist==='t'?` ، df=${df1}`:''}</div>
+            <div class="rval">±${c.toFixed(4)}</div>
+            <div class="rsmall">للطرف الأيمن: +${c.toFixed(4)}  |  للطرف الأيسر: −${c.toFixed(4)}</div>`;
+      plot.lines=[c]; plot.shade=[{from:c,to:1e9,col:'amber'}];
+    }else{
+      const c=inv(1-alpha/2);
+      html=`<div class="rtitle">القيمتان الحرجتان (طرفين) — ${distName} ، α=${alpha}${dist==='t'?` ، df=${df1}`:''}</div>
+            <div class="rval">±${c.toFixed(4)}</div>
+            <div class="rsmall">−${c.toFixed(4)}  و  +${c.toFixed(4)}</div>`;
+      plot.lines=[-c,c]; plot.shade=[{from:-1e9,to:-c,col:'teal'},{from:c,to:1e9,col:'amber'}];
+    }
+  }
+  else if(dist==='chi'){
+    if(tail==='one'){
+      const c=chiInv(1-alpha,df1);
+      html=`<div class="rtitle">القيمة الحرجة (طرف أيمن) — كاي تربيع ، α=${alpha} ، df=${df1}</div>
+            <div class="rval">${c.toFixed(4)}</div>`;
+      plot.lines=[c]; plot.shade=[{from:c,to:1e9,col:'amber'}];
+    }else{
+      const lo=chiInv(alpha/2,df1), hi=chiInv(1-alpha/2,df1);
+      html=`<div class="rtitle">القيمتان الحرجتان (طرفين) — كاي تربيع ، α=${alpha} ، df=${df1}</div>
+            <div class="rval teal">${lo.toFixed(4)}</div>
+            <div class="rsmall">الحد الأدنى χ²<sub>${(1-alpha/2).toFixed(3)}</sub></div>
+            <div class="rval">${hi.toFixed(4)}</div>
+            <div class="rsmall">الحد الأعلى χ²<sub>${(alpha/2).toFixed(3)}</sub></div>`;
+      plot.lines=[lo,hi]; plot.shade=[{from:0,to:lo,col:'teal'},{from:hi,to:1e9,col:'amber'}];
+    }
+  }
+  else{ // F
+    if(tail==='one'){
+      const c=fInv(1-alpha,df1,df2);
+      html=`<div class="rtitle">القيمة الحرجة (طرف أيمن) — F ، α=${alpha} ، df1=${df1} ، df2=${df2}</div>
+            <div class="rval">${c.toFixed(4)}</div>`;
+      plot.lines=[c]; plot.shade=[{from:c,to:1e9,col:'amber'}];
+    }else{
+      const lo=fInv(alpha/2,df1,df2), hi=fInv(1-alpha/2,df1,df2);
+      html=`<div class="rtitle">القيمتان الحرجتان (طرفين) — F ، α=${alpha} ، df1=${df1} ، df2=${df2}</div>
+            <div class="rval teal">${lo.toFixed(4)}</div>
+            <div class="rsmall">الحد الأدنى F<sub>${(1-alpha/2).toFixed(3)}</sub></div>
+            <div class="rval">${hi.toFixed(4)}</div>
+            <div class="rsmall">الحد الأعلى F<sub>${(alpha/2).toFixed(3)}</sub></div>`;
+      plot.lines=[lo,hi]; plot.shade=[{from:0,to:lo,col:'teal'},{from:hi,to:1e9,col:'amber'}];
+    }
+  }
+  box.className='result show'; box.innerHTML=html;
+  lastPlot=plot; drawPlot(plot); openPopup(distName);
+}
+
+/* ---------- حساب فترة الثقة ---------- */
+function onCiTypeChange(){
+  const t=document.getElementById('ciType').value;
+  document.getElementById('ci-t').classList.toggle('hidden',t!=='t');
+  document.getElementById('ci-chi').classList.toggle('hidden',t!=='chi');
+  document.getElementById('ci-prop').classList.toggle('hidden',t!=='prop');
+}
+function onCiLevelChange(){
+  document.getElementById('ciLevelCustomWrap').classList.toggle('hidden',document.getElementById('ciLevel').value!=='custom');
+}
+function getConf(){
+  const v=document.getElementById('ciLevel').value;
+  if(v==='custom'){const pct=parseFloat(document.getElementById('ciLevelCustom').value);return pct/100;}
+  return parseFloat(v);
+}
+function fmtPct(c){const p=c*100;return (Math.round(p*100)/100)+'%';}
+function computeCI(){
+  const type=document.getElementById('ciType').value;
+  const conf=getConf();
+  const box=document.getElementById('ciResult');
+  if(!(conf>0&&conf<1)){return showErr('ciResult','أدخل مستوى ثقة صحيحًا كنسبة مئوية بين 1 و 99.9');}
+  const alpha=1-conf;
+  const num=id=>parseFloat(document.getElementById(id).value);
+
+  if(type==='t'){
+    const xb=num('t_xbar'),s=num('t_s'),n=num('t_n');
+    if(isNaN(xb))return showErr('ciResult','أدخل متوسط العينة x̄');
+    if(!(s>=0))return showErr('ciResult','أدخل انحرافًا معياريًا s ≥ 0');
+    if(!(n>=2)||!Number.isInteger(n))return showErr('ciResult','أدخل حجم عينة n عددًا صحيحًا ≥ 2');
+    const df=n-1, tc=tInv(1-alpha/2,df), me=tc*s/Math.sqrt(n);
+    box.className='result show';
+    box.innerHTML=`<div class="rtitle">فترة الثقة للمتوسط (t) — ثقة ${fmtPct(conf)} ، df=${df}</div>
+      <div class="rval teal">[ ${(xb-me).toFixed(4)} , ${(xb+me).toFixed(4)} ]</div>
+      <div class="rsmall">t الحرجة = ${tc.toFixed(4)}  |  هامش الخطأ = ${me.toFixed(4)}</div>`;
+  }
+  else if(type==='chi'){
+    const s2=num('chi_s2'),n=num('chi_n');
+    if(!(s2>=0))return showErr('ciResult','أدخل تباينًا s² ≥ 0');
+    if(!(n>=2)||!Number.isInteger(n))return showErr('ciResult','أدخل حجم عينة n عددًا صحيحًا ≥ 2');
+    const df=n-1, lo=(df*s2)/chiInv(1-alpha/2,df), hi=(df*s2)/chiInv(alpha/2,df);
+    box.className='result show';
+    box.innerHTML=`<div class="rtitle">فترة الثقة للتباين σ² (كاي تربيع) — ثقة ${fmtPct(conf)} ، df=${df}</div>
+      <div class="rval teal">[ ${lo.toFixed(4)} , ${hi.toFixed(4)} ]</div>
+      <div class="rsmall">للانحراف المعياري σ:  [ ${Math.sqrt(lo).toFixed(4)} , ${Math.sqrt(hi).toFixed(4)} ]</div>`;
+  }
+  else{
+    const ph=num('p_phat'),n=num('p_n');
+    if(!(ph>=0&&ph<=1))return showErr('ciResult','أدخل نسبة p̂ بين 0 و 1');
+    if(!(n>=1)||!Number.isInteger(n))return showErr('ciResult','أدخل حجم عينة n عددًا صحيحًا ≥ 1');
+    const zc=normInv(1-alpha/2), me=zc*Math.sqrt(ph*(1-ph)/n);
+    const lo=Math.max(0,ph-me), hi=Math.min(1,ph+me);
+    box.className='result show';
+    box.innerHTML=`<div class="rtitle">فترة الثقة للنسبة p — ثقة ${fmtPct(conf)}</div>
+      <div class="rval teal">[ ${lo.toFixed(4)} , ${hi.toFixed(4)} ]</div>
+      <div class="rsmall">Z الحرجة = ${zc.toFixed(4)}  |  هامش الخطأ = ${me.toFixed(4)}</div>`;
+  }
+}
+
+/* ============================================================
+   رسم منحنى التوزيع مع التظليل
+   ============================================================ */
+function drawPlot(p){
+  const cv=document.getElementById('plot');
+  const ctx=cv.getContext('2d');
+  const dpr=window.devicePixelRatio||1;
+  const W=588,H=340;
+  cv.width=W*dpr; cv.height=H*dpr; cv.style.height='auto';
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#ffffff'; ctx.fillRect(0,0,W,H);
+
+  const pad={l:26,r:26,t:24,b:34};
+  const x0=pad.l, x1=W-pad.r, y0=H-pad.b, y1=pad.t;
+
+  // domain
+  let xmin,xmax,pdf;
+  if(p.dist==='z'){pdf=normPDF;xmin=-4;xmax=4;}
+  else if(p.dist==='t'){pdf=(x)=>tPDF(x,p.df1);const m=Math.max.apply(null,p.lines.map(Math.abs));xmin=-Math.max(4,m*1.25+0.6);xmax=-xmin;}
+  else if(p.dist==='chi'){pdf=(x)=>chiPDF(x,p.df1);const hi=Math.max.apply(null,p.lines);xmin=0;xmax=Math.max(hi*1.35,p.df1+4*Math.sqrt(2*p.df1),8);}
+  else{pdf=(x)=>fPDF(x,p.df1,p.df2);const hi=Math.max.apply(null,p.lines);xmin=0;xmax=Math.max(hi*1.5,4);}
+
+  const N=400, xs=[],ys=[]; let ymax=0;
+  for(let i=0;i<=N;i++){const x=xmin+(xmax-xmin)*i/N;const y=pdf(x);xs.push(x);ys.push(y);if(y>ymax)ymax=y;}
+  ymax*=1.12;
+  const X=x=>x0+(x-xmin)/(xmax-xmin)*(x1-x0);
+  const Y=y=>y0-(y/ymax)*(y0-y1);
+
+  // shaded regions
+  p.shade.forEach(sh=>{
+    const a=Math.max(sh.from,xmin), b=Math.min(sh.to,xmax);
+    if(b<=a)return;
+    ctx.beginPath(); ctx.moveTo(X(a),y0);
+    for(let i=0;i<=N;i++){const x=xs[i];if(x<a||x>b)continue;ctx.lineTo(X(x),Y(ys[i]));}
+    ctx.lineTo(X(b),y0); ctx.closePath();
+    ctx.fillStyle = sh.col==='amber' ? 'rgba(234,158,40,.50)' : 'rgba(15,150,138,.42)';
+    ctx.fill();
+  });
+
+  // baseline
+  ctx.strokeStyle='#64748b'; ctx.lineWidth=1; ctx.beginPath();ctx.moveTo(x0,y0);ctx.lineTo(x1,y0);ctx.stroke();
+
+  // curve
+  ctx.beginPath();
+  for(let i=0;i<=N;i++){const px=X(xs[i]),py=Y(ys[i]);i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);}
+  ctx.strokeStyle='#0d8e80'; ctx.lineWidth=2.4; ctx.stroke();
+
+  // critical lines + labels
+  ctx.font='12px Tahoma'; ctx.textAlign='center';
+  p.lines.forEach((c,idx)=>{
+    if(c<xmin||c>xmax)return;
+    const px=X(c);
+    ctx.strokeStyle = (p.shade[idx]&&p.shade[idx].col==='teal')?'#0d8e80':'#c2820a';
+    ctx.lineWidth=2; ctx.setLineDash([5,4]);
+    ctx.beginPath();ctx.moveTo(px,y0);ctx.lineTo(px,Y(pdf(c)));ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle=ctx.strokeStyle;
+    ctx.fillText(c.toFixed(3),px,y0+16);
+  });
+
+  // alpha label
+  ctx.fillStyle='#475569'; ctx.textAlign='left';
+  ctx.fillText('α = '+p.alpha+(p.tail==='two'?'  (طرفين)':'  (طرف واحد)'),x0,y1+2);
+}
+
+/* ============================================================
+   النافذة المنبثقة (قابلة للتحريك + حفظ الصورة)
+   ============================================================ */
+function openPopup(title){
+  document.getElementById('popupTitle').textContent='منحنى التوزيع — '+title;
+  document.getElementById('popup').style.display='block';
+  document.getElementById('modalBack').style.display='block';
+}
+function closePopup(){
+  document.getElementById('popup').style.display='none';
+  document.getElementById('modalBack').style.display='none';
+}
+function savePlot(){
+  const a=document.createElement('a');
+  a.download='التوزيع.png';
+  a.href=document.getElementById('plot').toDataURL('image/png');
+  a.click();
+}
+/* drag */
+(function(){
+  const pop=document.getElementById('popup'), head=document.getElementById('popupHead');
+  let drag=false,sx,sy,ox,oy;
+  head.addEventListener('mousedown',e=>{
+    if(e.target.classList.contains('x'))return;
+    drag=true; const r=pop.getBoundingClientRect();
+    pop.style.transform='none'; pop.style.left=r.left+'px'; pop.style.top=r.top+'px';
+    sx=e.clientX; sy=e.clientY; ox=r.left; oy=r.top;
+    document.body.style.userSelect='none';
+  });
+  window.addEventListener('mousemove',e=>{if(!drag)return;
+    pop.style.left=(ox+e.clientX-sx)+'px'; pop.style.top=(oy+e.clientY-sy)+'px';});
+  window.addEventListener('mouseup',()=>{drag=false;document.body.style.userSelect='';});
+})();
+
+/* about */
+function openAbout(){document.getElementById('aboutBack').style.display='flex';}
+function closeAbout(){document.getElementById('aboutBack').style.display='none';}
+document.getElementById('aboutBack').addEventListener('click',e=>{if(e.target.id==='aboutBack')closeAbout();});
+
+/* init */
+onDistChange(); onCiTypeChange(); onCiLevelChange();
+</script>
+</body>
+</html>
