@@ -4,10 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>تطبيق الاستدلال الإحصائي</title>
-<meta name="description" content="تطبيق الاستدلال الإحصائي: إيجاد القيم الحرجة، فترات الثقة، واختبارات الفروض — إعداد د. نزار عبد الله الصوفي، جامعة القصيم.">
+<meta name="description" content="تطبيق الاستدلال الإحصائي: إيجاد القيم الحرجة، الاحتمالات، فترات الثقة، واختبارات الفروض — إعداد د. نزار عبد الله الصوفي، جامعة القصيم.">
 <meta property="og:type" content="website">
 <meta property="og:title" content="تطبيق الاستدلال الإحصائي">
-<meta property="og:description" content="إيجاد القيم الحرجة · فترات الثقة · اختبارات الفروض — إعداد: د. نزار عبد الله الصوفي">
+<meta property="og:description" content="القيم الحرجة · الاحتمالات · فترات الثقة · اختبارات الفروض — إعداد: د. نزار عبد الله الصوفي">
 <meta property="og:locale" content="ar_SA">
 <meta property="og:image" content="https://nizarne-lang.github.io/stat-tool/og-image.png">
 <meta property="og:image:width" content="1200">
@@ -15,7 +15,7 @@
 <meta property="og:image:alt" content="الاستدلال الإحصائي — جامعة القصيم">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="تطبيق الاستدلال الإحصائي">
-<meta name="twitter:description" content="إيجاد القيم الحرجة · فترات الثقة · اختبارات الفروض — إعداد: د. نزار عبد الله الصوفي">
+<meta name="twitter:description" content="القيم الحرجة · الاحتمالات · فترات الثقة · اختبارات الفروض — إعداد: د. نزار عبد الله الصوفي">
 <meta name="twitter:image" content="https://nizarne-lang.github.io/stat-tool/og-image.png">
 <meta name="author" content="د. نزار عبد الله الصوفي">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
@@ -71,11 +71,11 @@
   .about-btn:hover{border-color:var(--teal);color:var(--teal)}
 
   /* ---------- Tabs ---------- */
-  .tabs{display:flex;gap:10px;margin:22px 0 0}
+  .tabs{display:flex;gap:8px;margin:22px 0 0}
   .tab{
-    flex:1;text-align:center;padding:14px;border-radius:14px 14px 0 0;
+    flex:1;text-align:center;padding:14px 6px;border-radius:14px 14px 0 0;
     background:var(--panel);border:1px solid var(--line);border-bottom:none;
-    cursor:pointer;font-weight:700;font-size:16px;color:var(--muted);transition:.2s
+    cursor:pointer;font-weight:700;font-size:15px;color:var(--muted);transition:.2s
   }
   .tab.active{background:var(--panel2);color:var(--text);box-shadow:inset 0 3px 0 var(--teal)}
   .tab:hover:not(.active){color:var(--text)}
@@ -191,7 +191,7 @@
     </svg>
     <div class="brand">
       <h1>الاستدلال الإحصائي</h1>
-      <div class="sub">أداة تعليمية: القيم الحرجة · فترات الثقة · اختبارات الفروض</div>
+      <div class="sub">أداة تعليمية: القيم الحرجة · الاحتمالات · فترات الثقة · اختبارات الفروض</div>
       <div class="uni">جامعة القصيم · كلية الأعمال والاقتصاد</div>
     </div>
     <button class="about-btn" onclick="openAbout()">about ⓘ</button>
@@ -200,6 +200,7 @@
   <!-- ===== TABS ===== -->
   <div class="tabs">
     <div class="tab active" id="tab-cv" onclick="switchTab('cv')">القيم الحرجة</div>
+    <div class="tab" id="tab-pr" onclick="switchTab('pr')">الاحتمالات</div>
     <div class="tab" id="tab-ci" onclick="switchTab('ci')">فترات الثقة</div>
     <div class="tab" id="tab-ht" onclick="switchTab('ht')">اختبارات الفروض</div>
   </div>
@@ -257,6 +258,61 @@
 
     <div class="note">
       ملاحظة: التوزيع الطبيعي (Z) لا يحتاج درجات حرية، وكاي تربيع يحتاج df1 فقط، وتوزيع F يحتاج df1 و df2.
+    </div>
+  </div>
+
+  <!-- ===== PANEL: PROBABILITIES ===== -->
+  <div class="panel hidden" id="panel-pr">
+
+    <div class="field">
+      <label>١) اختر التوزيع</label>
+      <select id="prDist" onchange="onPrDistChange()">
+        <option value="z">التوزيع الطبيعي المعياري (Z)</option>
+        <option value="t">توزيع t</option>
+        <option value="chi">توزيع كاي تربيع (χ²)</option>
+        <option value="f">توزيع F (فيشر)</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>٢) نوع الاحتمال المطلوب</label>
+      <select id="prType" onchange="onPrTypeChange()">
+        <option value="le">P(X ≤ x) — احتمال أقل من أو يساوي قيمة</option>
+        <option value="ge">P(X ≥ x) — احتمال أكبر من أو يساوي قيمة</option>
+        <option value="between">P(a ≤ X ≤ b) — احتمال بين قيمتين</option>
+      </select>
+    </div>
+
+    <div class="row">
+      <div class="field hidden" id="prDf1Wrap">
+        <label id="prDf1Label">٣) درجة الحرية df</label>
+        <input type="number" id="prDf1" min="1" step="1" placeholder="مثال: 10">
+      </div>
+      <div class="field hidden" id="prDf2Wrap">
+        <label>درجة الحرية df2</label>
+        <input type="number" id="prDf2" min="1" step="1" placeholder="مثال: 20">
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label id="prXLabel">قيمة x</label>
+        <input type="number" id="prX" step="any" placeholder="مثال: 1.96">
+      </div>
+      <div class="field hidden" id="prBWrap">
+        <label>قيمة b <span class="hint">(الحد الأعلى)</span></label>
+        <input type="number" id="prB" step="any" placeholder="مثال: 2.5">
+      </div>
+    </div>
+
+    <button class="btn primary full" onclick="computeProb()">حساب الاحتمال</button>
+
+    <div class="result" id="prResult">
+      <span class="placeholder">سيظهر الاحتمال هنا، ويُفتح رسم التوزيع مع تظليل المساحة المقابلة له.</span>
+    </div>
+
+    <div class="note">
+      ملاحظة: التوزيع الطبيعي المعياري (Z) لا يحتاج درجات حرية، و t وكاي تربيع يحتاجان درجة حرية واحدة، وتوزيع F يحتاج df1 و df2. قيم كاي تربيع و F لا تكون سالبة.
     </div>
   </div>
 
@@ -556,7 +612,7 @@
     <div class="credit">الاستدلال الإحصائي — إعداد: د. نزار عبد الله الصوفي</div>
     <div>قسم نظم المعلومات الإدارية — كلية الأعمال والاقتصاد — جامعة القصيم</div>
     <div class="copy">© جميع الحقوق محفوظة — 2026</div>
-    <div class="ver">v 1.0.0</div>
+    <div class="ver">v 1.1.0</div>
   </footer>
 </div>
 
@@ -576,7 +632,7 @@
 <div class="about-back" id="aboutBack">
   <div class="about-card">
     <h2>عن البرنامج · طريقة الاستخدام</h2>
-    <p>هذا البرنامج أداة تعليمية موجّهة للطالب لإيجاد <b>القيم الحرجة</b> لأهم التوزيعات الاحتمالية، وحساب <b>فترات الثقة</b>.</p>
+    <p>هذا البرنامج أداة تعليمية موجّهة للطالب لإيجاد <b>القيم الحرجة</b> لأهم التوزيعات الاحتمالية، وحساب <b>الاحتمالات</b> و<b>فترات الثقة</b> وإجراء <b>اختبارات الفروض</b>.</p>
 
     <h3>تبويب «القيم الحرجة»</h3>
     <ul>
@@ -584,6 +640,13 @@
       <li>اختر مستوى المعنوية α، أو أدخل قيمة خاصة بك.</li>
       <li>أدخل درجات الحرية عند الحاجة: t وكاي تربيع يحتاجان df1، وتوزيع F يحتاج df1 و df2. أما Z فلا يحتاج درجات حرية.</li>
       <li>اضغط «طرف واحد» أو «طرفين» لتظهر القيمة الحرجة، وتُفتح نافذة فيها منحنى التوزيع مع تظليل المنطقة الحرجة. يمكنك تحريك النافذة وحفظ الرسم كصورة.</li>
+    </ul>
+
+    <h3>تبويب «الاحتمالات»</h3>
+    <ul>
+      <li>اختر التوزيع (Z، t، كاي تربيع، أو F) وأدخل درجات الحرية عند الحاجة.</li>
+      <li>اختر نوع الاحتمال: P(X ≤ x)، أو P(X ≥ x)، أو P(a ≤ X ≤ b) بين قيمتين.</li>
+      <li>أدخل القيمة (أو القيمتين) ثم اضغط «حساب الاحتمال»: تظهر النتيجة مع الاحتمال المكمل، وتُفتح نافذة الرسم مع تظليل المساحة المقابلة للاحتمال.</li>
     </ul>
 
     <h3>تبويب «فترات الثقة»</h3>
@@ -601,7 +664,7 @@
 
     <h3>إعداد</h3>
     <p>د. نزار عبد الله الصوفي<br>قسم نظم المعلومات الإدارية — كلية الأعمال والاقتصاد — جامعة القصيم</p>
-    <p style="color:var(--faint);font-size:13px">الإصدار 1.0.0</p>
+    <p style="color:var(--faint);font-size:13px">الإصدار 1.1.0</p>
 
     <button class="close" onclick="closeAbout()">إغلاق</button>
   </div>
@@ -673,12 +736,10 @@ function fPDF(x,d1,d2){if(x<=0)return 0;return Math.exp(gammaln((d1+d2)/2)-gamma
    واجهة المستخدم
    ============================================================ */
 function switchTab(t){
-  document.getElementById('tab-cv').classList.toggle('active',t==='cv');
-  document.getElementById('tab-ci').classList.toggle('active',t==='ci');
-  document.getElementById('tab-ht').classList.toggle('active',t==='ht');
-  document.getElementById('panel-cv').classList.toggle('hidden',t!=='cv');
-  document.getElementById('panel-ci').classList.toggle('hidden',t!=='ci');
-  document.getElementById('panel-ht').classList.toggle('hidden',t!=='ht');
+  ['cv','pr','ci','ht'].forEach(k=>{
+    document.getElementById('tab-'+k).classList.toggle('active',k===t);
+    document.getElementById('panel-'+k).classList.toggle('hidden',k!==t);
+  });
 }
 function onDistChange(){
   const d=document.getElementById('dist').value;
@@ -763,6 +824,71 @@ function computeCritical(tail){
     }
   }
   box.className='result show'; box.innerHTML=html;
+  lastPlot=plot; drawPlot(plot); openPopup(distName);
+}
+
+/* ---------- حساب الاحتمالات ---------- */
+function onPrDistChange(){
+  const d=document.getElementById('prDist').value;
+  document.getElementById('prDf1Wrap').classList.toggle('hidden',d==='z');
+  document.getElementById('prDf2Wrap').classList.toggle('hidden',d!=='f');
+  document.getElementById('prDf1Label').textContent = d==='f' ? '٣) درجة الحرية df1' : '٣) درجة الحرية df';
+}
+function onPrTypeChange(){
+  const t=document.getElementById('prType').value;
+  document.getElementById('prBWrap').classList.toggle('hidden',t!=='between');
+  document.getElementById('prXLabel').textContent = t==='between' ? 'قيمة a (الحد الأدنى)' : 'قيمة x';
+}
+function computeProb(){
+  const dist=document.getElementById('prDist').value;
+  const type=document.getElementById('prType').value;
+  const df1=parseFloat(document.getElementById('prDf1').value);
+  const df2=parseFloat(document.getElementById('prDf2').value);
+  const x=parseFloat(document.getElementById('prX').value);
+  const b=parseFloat(document.getElementById('prB').value);
+  const err=m=>showErr('prResult',m);
+
+  if((dist==='t'||dist==='chi'||dist==='f') && !(df1>=1))return err('أدخل درجة الحرية (عدد ≥ 1)');
+  if(dist==='f' && !(df2>=1))return err('أدخل درجة الحرية df2 (عدد ≥ 1)');
+  if(isNaN(x))return err(type==='between'?'أدخل قيمة a (الحد الأدنى)':'أدخل قيمة x');
+  if(type==='between'){
+    if(isNaN(b))return err('أدخل قيمة b (الحد الأعلى)');
+    if(!(b>x))return err('يجب أن تكون b أكبر من a');
+  }
+  if((dist==='chi'||dist==='f') && x<0)return err('قيم كاي تربيع و F لا تكون سالبة (أدخل قيمة ≥ 0)');
+
+  const cdf = dist==='z' ? (v=>normCDF(v))
+            : dist==='t' ? (v=>tCDF(v,df1))
+            : dist==='chi'? (v=>chiCDF(v,df1))
+            : (v=>fCDF(v,df1,df2));
+  const lowLimit=(dist==='chi'||dist==='f')?0:-1e9;
+  const distName={z:'الطبيعي المعياري (Z)',t:'t',chi:'كاي تربيع (χ²)',f:'F (فيشر)'}[dist];
+  const dfTxt = dist==='z' ? '' : dist==='f' ? ` ، df1=${df1} ، df2=${df2}` : ` ، df=${df1}`;
+
+  let prob, desc, lines, shade, extra;
+  if(type==='le'){
+    prob=cdf(x); desc=`P(X ≤ ${x})`;
+    lines=[x]; shade=[{from:lowLimit,to:x,col:'teal'}];
+    extra=`الاحتمال المكمل: P(X > ${x}) = ${(1-prob).toFixed(4)}`;
+  }else if(type==='ge'){
+    prob=1-cdf(x); desc=`P(X ≥ ${x})`;
+    lines=[x]; shade=[{from:x,to:1e9,col:'amber'}];
+    extra=`الاحتمال المكمل: P(X < ${x}) = ${(1-prob).toFixed(4)}`;
+  }else{
+    prob=cdf(b)-cdf(x); desc=`P(${x} ≤ X ≤ ${b})`;
+    lines=[x,b]; shade=[{from:x,to:b,col:'teal'}];
+    extra=`P(X < ${x}) = ${cdf(x).toFixed(4)}  |  P(X > ${b}) = ${(1-cdf(b)).toFixed(4)}`;
+  }
+  if(prob<0)prob=0; if(prob>1)prob=1;
+
+  const box=document.getElementById('prResult');
+  box.className='result show';
+  box.innerHTML=`<div class="rtitle">الاحتمال — التوزيع ${distName}${dfTxt}</div>
+    <div class="rval teal">${desc} = ${prob.toFixed(4)}</div>
+    <div class="rsmall">${extra}</div>`;
+
+  const plot={dist,df1,df2,alpha:null,tail:null,lines,shade,
+              cornerText:desc+' = '+prob.toFixed(4)};
   lastPlot=plot; drawPlot(plot); openPopup(distName);
 }
 
@@ -1146,7 +1272,7 @@ function closeAbout(){document.getElementById('aboutBack').style.display='none';
 document.getElementById('aboutBack').addEventListener('click',e=>{if(e.target.id==='aboutBack')closeAbout();});
 
 /* init */
-onDistChange(); onCiTypeChange(); onCiLevelChange(); onHtTypeChange(); onHtAlphaChange();
+onDistChange(); onPrDistChange(); onPrTypeChange(); onCiTypeChange(); onCiLevelChange(); onHtTypeChange(); onHtAlphaChange();
 </script>
 </body>
 </html>
